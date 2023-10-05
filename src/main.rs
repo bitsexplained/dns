@@ -4,7 +4,7 @@ pub struct BytePacketBuffer{
     pub buf: [u8; 512],
     pub pos: usize,
 }
-
+/// BytePacketBuffer provides a convinient method of manipulating the packets
 impl BytePacketBuffer {
     ///This gives us a fresh new BytePacketBuffer for holding the packet contents
     /// and a field for keeping track of where we are in the buffer
