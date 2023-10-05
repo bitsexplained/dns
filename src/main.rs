@@ -414,7 +414,7 @@ impl DnsPacket {
 fn main() -> Result<()> {
     let mut f = File::open("response_packet.txt")?;
     let mut buffer = BytePacketBuffer::new();
-    f.read(&mut buffer.buf);
+    f.read(&mut buffer.buf)?;
 
     let packet = DnsPacket::from_buffer(&mut buffer)?;
     println!("{:#?}", packet.header);
