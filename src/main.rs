@@ -1,6 +1,9 @@
-use std::fmt::Error;
 use std::net::Ipv4Addr;
+use std::fs::File;
+use std::io::Read;
 
+type Error = Box<dyn std::error::Error>;
+type Result<T> = std::result::Result<T, Error>;
 
 pub struct BytePacketBuffer{
     pub buf: [u8; 512],
@@ -24,21 +27,21 @@ impl BytePacketBuffer {
     }
 
     //step the buffer position forward a certain number of position
-    fn step(&mut self, steps: usize) -> Result<(),()> {
+    fn step(&mut self, steps: usize) -> Result<()>{
         self.pos += steps;
         Ok(())
     }
 
     //change the buffer position
-    fn seek(&mut self, pos: usize) -> Result<(),Error> {
+    fn seek(&mut self, pos: usize) -> Result<()> {
         self.pos = pos;
         Ok(())
     }
 
     // read a single byte and move the position forward
-    fn read(&mut self) -> Result<u8, Error> {
+    fn read(&mut self) -> Result<u8> {
         if self.pos >= 512 {
-            return Err(std::fmt::Error);
+            return Err("End of buffer".into());
         }
         let res = self.buf[self.pos];
         self.pos += 1;
@@ -46,29 +49,29 @@ impl BytePacketBuffer {
     }
 
     /// Get a single byte, without changing the buffer position
-    fn get(&mut self, pos: usize) -> Result<u8, Error> {
+    fn get(&mut self, pos: usize) -> Result<u8> {
         if pos >= 512 {
-            return Err(std::fmt::Error);
+            return Err("End of buffer".into());
         }
         Ok(self.buf[pos])
     }
 
     //get a range of bytes
-    fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8], Error> {
+    fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8]> {
         if start + len > 512 {
-            return Err(std::fmt::Error);
+            return Err("End of buffer".into());
         }
         Ok(&self.buf[start..start+len as usize])
     }
 
     //read two bytes stepping two bytes forward
-    fn read_u16(&mut self) -> Result<u16, Error> {
+    fn read_u16(&mut self) -> Result<u16> {
         let res = (self.read()? as u16) << 8 | (self.read()? as u16);
         Ok(res as u16)
     }
 
     //read four bytes stepping four bytes forward
-    fn read_u32(&mut self) -> Result<u32, Error> {
+    fn read_u32(&mut self) -> Result<u32> {
         let res = (self.read()? as u32) << 24
         | (self.read()? as u32) << 16
         | (self.read()? as u32) << 8
@@ -81,7 +84,7 @@ impl BytePacketBuffer {
     /// Read a domain name by reading the length bytes and concatenating them with dots in between
     ///  Will take something like [3]www[6]google[3]com[0] and append
     /// www.google.com to outstr.
-    fn read_qname(&mut self, outstr: &mut String) -> Result<(),Error> {
+    fn read_qname(&mut self, outstr: &mut String) -> Result<()> {
         // Since we might encounter jumps, we'll keep track of our position
         // locally as opposed to using the position within the struct. This
         // allows us to move the shared position to a point past our current
@@ -103,7 +106,7 @@ impl BytePacketBuffer {
             //Dns packets are untrusted data so we need to have a guard against malicious packets
             // for instance one can craft a packet with a cycle in the jump instructions
             if jumps_performed > max_jumps{
-                return  Err(std::fmt::Error);
+                return  Err(format!("Limit of {} jumps exceeded", max_jumps).into());
             }
 
             // at this point we are at the begining of a label
@@ -226,7 +229,7 @@ impl DnsHeader {
         }
     }
 
-    pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<(),Error> {
+    pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<()> {
         self.id = buffer.read_u16()?;
 
         let flags = buffer.read_u16()?;
@@ -292,7 +295,7 @@ impl DnsQuestion {
         }
     }
 
-    pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<(), Error> {
+    pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<()> {
         buffer.read_qname(&mut self.name)?;
         self.question_type = QueryType::from_num(buffer.read_u16()?);
         let _ = buffer.read_u16()?;
@@ -318,7 +321,7 @@ pub enum DnsRecord {
 }
 
 impl DnsRecord {
-    pub fn read(buffer: &mut BytePacketBuffer) -> Result<DnsRecord, Error> {
+    pub fn read(buffer: &mut BytePacketBuffer) -> Result<DnsRecord> {
         let mut domain = String::new();
         buffer.read_qname(&mut domain)?;
 
@@ -380,7 +383,7 @@ impl DnsPacket {
         }
     }
 
-    pub fn from_buffer(buffer: &mut BytePacketBuffer) -> Result<DnsPacket, Error> {
+    pub fn from_buffer(buffer: &mut BytePacketBuffer) -> Result<DnsPacket> {
         let mut result = DnsPacket::new();
         result.header.read(buffer)?;
 
@@ -408,6 +411,26 @@ impl DnsPacket {
     }
 }
 
-fn main() {
-    println!("Hello, world!");
+fn main() -> Result<()> {
+    let mut f = File::open("response_packet.txt")?;
+    let mut buffer = BytePacketBuffer::new();
+    f.read(&mut buffer.buf);
+
+    let packet = DnsPacket::from_buffer(&mut buffer)?;
+    println!("{:#?}", packet.header);
+
+    for q in packet.questions {
+        println!("{:#?}", q);
+    }
+    for rec in packet.answers {
+        println!("{:#?}", rec);
+    }
+    for rec in packet.authorities {
+        println!("{:#?}", rec);
+    }
+    for rec in packet.resources {
+        println!("{:#?}", rec);
+    }
+
+    Ok(())
 }
