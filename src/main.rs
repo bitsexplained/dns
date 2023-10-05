@@ -1,0 +1,158 @@
+use std::fmt::Error;
+
+pub struct BytePacketBuffer{
+    pub buf: [u8; 512],
+    pub pos: usize,
+}
+
+impl BytePacketBuffer {
+    ///This gives us a fresh new BytePacketBuffer for holding the packet contents
+    /// and a field for keeping track of where we are in the buffer
+    pub fn new() -> BytePacketBuffer {
+        BytePacketBuffer{
+            buf: [0; 512],
+            pos: 0,
+        }
+    }
+
+    //current position in the buffer
+    fn pos(&self) -> usize {
+        self.pos
+    }
+
+    //step the buffer position forward a certain number of position
+    fn step(&mut self, steps: usize) -> Result<(),()> {
+        self.pos += steps;
+        Ok(())
+    }
+
+    //change the buffer position
+    fn seek(&mut self, pos: usize) -> Result<(),Error> {
+        self.pos = pos;
+        Ok(())
+    }
+
+    // read a single byte and move the position forward
+    fn read(&mut self) -> Result<u8, Error> {
+        if self.pos >= 512 {
+            return Err(std::fmt::Error);
+        }
+        let res = self.buf[self.pos];
+        self.pos += 1;
+        Ok(res)
+    }
+
+    /// Get a single byte, without changing the buffer position
+    fn get(&mut self, pos: usize) -> Result<u8, Error> {
+        if pos >= 512 {
+            return Err(std::fmt::Error);
+        }
+        Ok(self.buf[pos])
+    }
+
+    //get a range of bytes
+    fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8], Error> {
+        if start + len > 512 {
+            return Err(std::fmt::Error);
+        }
+        Ok(&self.buf[start..start+len as usize])
+    }
+
+    //read two bytes stepping two bytes forward
+    fn read_two(&mut self) -> Result<u16, Error> {
+        let res = (self.read()? as u16) << 8 | (self.read()? as u16);
+        Ok(res as u16)
+    }
+
+    //read four bytes stepping four bytes forward
+    fn read_four(&mut self) -> Result<u32, Error> {
+        let res = (self.read()? as u32) << 24
+        | (self.read()? as u32) << 16
+        | (self.read()? as u32) << 8
+        | (self.read()? as u32) << 0;
+        Ok(res)
+    }
+
+    ///read q name
+    ///
+    /// Read a domain name by reading the length bytes and concatenating them with dots in between
+    ///  Will take something like [3]www[6]google[3]com[0] and append
+    /// www.google.com to outstr.
+    fn read_qname(&mut self, outstr: &mut String) -> Result<(),Error> {
+        // Since we might encounter jumps, we'll keep track of our position
+        // locally as opposed to using the position within the struct. This
+        // allows us to move the shared position to a point past our current
+        // qname, while keeping track of our progress on the current qname
+        // using this variable.
+        let mut qname_pos = self.pos();
+
+
+        // track wether we have jumped or not
+        let mut jumped = false;
+        let max_jumps = 5;
+        let mut jumps_performed = 0;
+
+        //our delimiter which we append for each label
+        //since we do not want a dot at the begining of the domain name we'll leave it empty for now
+        //and set it to "." at the end of the first iteration
+        let mut delimiter = " ";
+        loop {
+            //Dns packets are untrusted data so we need to have a guard against malicious packets
+            // for instance one can craft a packet with a cycle in the jump instructions
+            if jumps_performed > max_jumps{
+                return  Err(std::fmt::Error);
+            }
+
+            // at this point we are at the begining of a label
+            //NB: labels start with a length byte
+            let len = self.get(qname_pos)?;
+
+            // If len has the two most significant bit are set, it represents a
+            // jump to some other offset in the packet:
+            if (len & 0xC0) == 0xC0 {
+                // Update the buffer position to a point past the current
+                // label. We don't need to touch it any further.
+                if !jumped {
+                    self.seek(qname_pos + 2)?;
+                }
+
+                // read another byte, calculate the the offset and perform the jump
+                // by updating our local position variable
+                let b2 = self.get(qname_pos)? as u16;
+                let offset = ((len as u16)^ 0xC0) << 8 | b2;
+                qname_pos = offset as usize;
+
+                //indicate that a jump was performed
+                jumped = true;
+                jumps_performed += 1;
+                continue;
+            }
+            //base scenario when we are reading a single label and appending it to the output
+            else {
+                // move a single byte forward to move past the length byte
+                qname_pos += 1;
+                if len == 0 {
+                    break;
+                }
+                //append the delimiter to our output first
+                outstr.push_str(delimiter);
+
+                //extract the actual ASCII bytes from this label and append them to the output buffer
+                let str_buffer = self.get_range(qname_pos, len as usize)?;
+                outstr.push_str(&String::from_utf8_lossy(str_buffer).to_lowercase());
+                delimiter = ".";
+
+                // move forward the full length of the label
+                qname_pos += len as usize;
+            }
+        }
+        if !jumped {
+            self.seek(qname_pos)?;
+        }
+        Ok(())
+    }
+}
+
+fn main() {
+    println!("Hello, world!");
+}
