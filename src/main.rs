@@ -157,6 +157,37 @@ impl BytePacketBuffer {
         }
         Ok(())
     }
+
+    // write a a helper function for writing a single byte and moving the position forward
+    fn write(&mut self, byte: u8) -> Result<()> {
+        if self.pos >= 512 {
+            return Err("End of buffer".into());
+        }
+        self.buf[self.pos] = byte;
+        self.pos += 1;
+        Ok(())
+    }
+    // write_u8 a single byte
+    fn write_u8(&mut self, byte: u8) -> Result<()> {
+        self.write(byte)?;
+        Ok(())
+    }
+
+    //write_u16 writes two bytes
+    fn write_u16(&mut self, byte: u16) -> Result<()> {
+        	self.write((byte >> 8) as u8)?;
+            self.write((byte & 0xff) as u8)?;
+            Ok(())
+    }
+
+    //write_u32 writes four bytes
+    fn write_u32(&mut self, byte: u32) -> Result<()> {
+        self.write((byte >> 24) as u8)?;
+        self.write((byte >> 16) as u8)?;
+        self.write((byte >> 8) as u8)?;
+        self.write((byte >> 0) as u8)?;
+        Ok(())
+    }
 }
 
 // ResultCode
