@@ -499,7 +499,7 @@ impl DnsPacket {
             resources: Vec::new(),
         }
     }
-
+    // read DNS packet from buffer
     pub fn from_buffer(buffer: &mut BytePacketBuffer) -> Result<DnsPacket> {
         let mut result = DnsPacket::new();
         result.header.read(buffer)?;
@@ -525,6 +525,28 @@ impl DnsPacket {
         }
 
         Ok(result)
+    }
+    // write DNS packet to buffer
+    pub fn write(&self, buffer: &mut BytePacketBuffer) -> Result<()> {
+        // Write header
+        self.header.write(buffer)?;
+        // Write questions
+        for question in &self.questions {
+            question.write(buffer)?;
+        }
+        // Write answers
+        for answer in &self.answers {
+            answer.write(buffer)?;
+        }
+        // write authorities
+        for auth in &self.authorities {
+            auth.write(buffer)?;
+        }
+        // write resource entries
+        for resource in &self.resources{
+            resource.write(buffer)?;
+        }
+        Ok(())
     }
 }
 
