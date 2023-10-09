@@ -348,7 +348,7 @@ impl DnsRecord {
                 })
             }
             QueryType::UNKNOWN(_) => {
-                buffer.step(data_len as usize);
+                buffer.step(data_len as usize)?;
 
                 Ok(DnsRecord::UNKNOWN {
                     domain: domain,
