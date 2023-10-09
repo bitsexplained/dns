@@ -1,6 +1,5 @@
-use std::net::Ipv4Addr;
-use std::fs::File;
-use std::io::Read;
+use std::net::{Ipv4Addr, UdpSocket};
+
 
 type Error = Box<dyn std::error::Error>;
 type Result<T> = std::result::Result<T, Error>;
@@ -551,11 +550,42 @@ impl DnsPacket {
 }
 
 fn main() -> Result<()> {
-    let mut f = File::open("response_packet.txt")?;
-    let mut buffer = BytePacketBuffer::new();
-    f.read(&mut buffer.buf)?;
+    // perform a query for youtube.com
+    let q_name = "youtube.com";
+    let q_type = QueryType::A;
 
-    let packet = DnsPacket::from_buffer(&mut buffer)?;
+    //use youtube public dns server
+    let server = ("8.8.8.8", 53);
+
+    // bind a UDP socket to arbitrary port
+    let socket = UdpSocket::bind(("0.0.0.0", 42340))?;
+
+
+    // Build our query packet. It's important that we remember to set the
+    // `recursion_desired` flag. As noted earlier, the packet id is arbitrary.
+    let mut packet = DnsPacket::new();
+    packet.header.id = 6666;
+    packet.header.questions = 1;
+    packet.header.recursion_desired = true;
+    packet
+        .questions
+        .push(DnsQuestion::new(q_name.to_string(), q_type));
+
+
+    // Use our new write method to write the packet to a buffer...
+    let mut req_buffer = BytePacketBuffer::new();
+    packet.write(&mut req_buffer)?;
+
+     // ...and send it off to the server using our socket:
+     socket.send_to(&req_buffer.buf[0..req_buffer.pos], server)?;
+
+    // To prepare for receiving the response, we'll create a new `BytePacketBuffer`,
+    // and ask the socket to write the response directly into our buffer.
+    let mut res_buffer = BytePacketBuffer::new();
+    socket.recv_from(&mut res_buffer.buf)?;
+
+    //`DnsPacket::from_buffer()` is used to parse the response and print it
+    let packet = DnsPacket::from_buffer(&mut res_buffer)?;
     println!("{:#?}", packet.header);
 
     for q in packet.questions {
