@@ -277,7 +277,7 @@ impl DnsHeader {
             resource_entries: 0,
         }
     }
-
+    // read DNS header from buffer
     pub fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<()> {
         self.id = buffer.read_u16()?;
 
@@ -301,6 +301,34 @@ impl DnsHeader {
         self.answers = buffer.read_u16()?;
         self.authoritative_entries = buffer.read_u16()?;
         self.resource_entries = buffer.read_u16()?;
+
+        Ok(())
+    }
+    // write DNS header to buffer
+    pub fn write(&self, buffer: &mut BytePacketBuffer) -> Result<()> {
+        // Write id
+        buffer.write_u16(self.id)?;
+        // Write recursion_desired flag
+        buffer.write_u8(
+            (self.recursion_desired as u8)
+            | ((self.truncated_message as u8) << 1)
+            | ((self.authoritative_answer as u8) << 2)
+            | ((self.opcode as u8) << 3)
+            | ((self.response as u8) << 7)
+        )?;
+        // write rescode
+        buffer.write_u8(
+            (self.rescode as u8)
+            | ((self.checking_disabled as u8) << 4)
+            | ((self.authed_data as u8) << 5)
+            | ((self.z as u8) << 6)
+            | ((self.recursion_available as u8) << 7)
+        )?;
+
+        buffer.write_u16(self.questions)?;
+        buffer.write_u16(self.answers)?;
+        buffer.write_u16(self.authoritative_entries)?;
+        buffer.write_u16(self.resource_entries)?;
 
         Ok(())
     }
