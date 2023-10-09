@@ -188,6 +188,24 @@ impl BytePacketBuffer {
         self.write((byte >> 0) as u8)?;
         Ok(())
     }
+
+    //write_qname write query names in labeled form
+    fn write_qname(&mut self, q_name: &str) -> Result<()> {
+        // Split the name on dots
+        for label in q_name.split('.') {
+            let len = label.len();
+            if len > 0x3f {
+                return Err("Label is too long and exceeds 63 characters".into());
+            }
+            self.write_u8(len as u8)?;
+            // write the label
+            for byte in label.as_bytes() {
+                self.write(*byte)?;
+            }
+        }
+        self.write_u8(0)?;
+        Ok(())
+    }
 }
 
 // ResultCode
