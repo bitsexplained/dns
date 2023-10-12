@@ -100,7 +100,7 @@ impl BytePacketBuffer {
         //our delimiter which we append for each label
         //since we do not want a dot at the begining of the domain name we'll leave it empty for now
         //and set it to "." at the end of the first iteration
-        let mut delimiter = " ";
+        let mut delimiter = "";
         loop {
             //Dns packets are untrusted data so we need to have a guard against malicious packets
             // for instance one can craft a packet with a cycle in the jump instructions
@@ -123,7 +123,7 @@ impl BytePacketBuffer {
 
                 // read another byte, calculate the the offset and perform the jump
                 // by updating our local position variable
-                let b2 = self.get(qname_pos)? as u16;
+                let b2 = self.get(qname_pos + 1)? as u16;
                 let offset = ((len as u16)^ 0xC0) << 8 | b2;
                 qname_pos = offset as usize;
 
@@ -428,19 +428,19 @@ impl DnsRecord {
                 );
 
                 Ok(DnsRecord::A {
-                    domain: domain,
-                    addr: addr,
-                    ttl: ttl,
+                    domain,
+                    addr,
+                    ttl,
                 })
             }
             QueryType::UNKNOWN(_) => {
                 buffer.step(data_len as usize)?;
 
                 Ok(DnsRecord::UNKNOWN {
-                    domain: domain,
+                    domain,
                     qtype: qtype_num,
-                    data_len: data_len,
-                    ttl: ttl,
+                    data_len,
+                    ttl,
                 })
             }
         }
