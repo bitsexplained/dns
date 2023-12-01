@@ -958,3 +958,81 @@ fn main() -> Result<()> {
         }
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn create_byte_packet_buffer() -> BytePacketBuffer {
+        BytePacketBuffer::new()
+    }
+    #[test]
+    fn test_create_byte_packet_buffer() {
+        let buffer = create_byte_packet_buffer();
+        assert_eq!(buffer.pos(), 0);
+    }
+    #[test]
+    fn test_get_range_from_buffer() {
+        let mut buffer = create_byte_packet_buffer();
+        let result = buffer.get_range(0, 10);
+        assert!(result.is_ok());
+        let right_val = result.unwrap();
+
+        assert_eq!(right_val, vec![0; 10]);
+    }
+    #[test]
+    fn test_write_single_byte() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_u8(0x12).unwrap();
+        assert_eq!(buffer.pos(), 1);
+    }
+    #[test]
+    fn test_write_two_bytes() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_u16(0x1234).unwrap();
+        assert_eq!(buffer.pos(), 2);
+    }
+    #[test]
+    fn test_write_four_bytes() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_u32(0x12345678).unwrap();
+        assert_eq!(buffer.pos(), 4);
+    }
+
+    #[test]
+    fn test_read_single_byte() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_u8(0x12).unwrap();
+        let result = buffer.read();
+        assert!(result.is_ok());
+    }
+    #[test]
+    fn test_read_two_bytes() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_u16(0x1234).unwrap();
+        let result = buffer.read_u16();
+        assert!(result.is_ok());
+    }
+    #[test]
+    fn test_read_four_bytes() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_u32(0x12345678).unwrap();
+        let result = buffer.read_u32();
+        assert!(result.is_ok());
+    }
+    #[test]
+    fn test_write_qname() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_qname("www.example.com").unwrap();
+        assert_eq!(buffer.pos(), 17);
+    }
+    #[test]
+    fn test_read_qname() {
+        let mut buffer = create_byte_packet_buffer();
+        buffer.write_qname("www.example.com").unwrap();
+        let result = buffer.read_qname(&mut "www.example.com".to_owned());
+        assert!(result.is_ok());
+    }
+}
+
+
