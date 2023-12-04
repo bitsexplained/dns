@@ -1,13 +1,14 @@
+use std::net::UdpSocket;
+
 pub mod utils;
 pub mod buffer;
 pub mod dns;
 
-use std::net::UdpSocket;
 
 use utils::types::Result;
-use buffer::buffer::*;
-use dns::dns_header::*;
-use dns::dns_packet::*;
+use buffer::buffer::BytePacketBuffer;
+use dns::dns_header::ResultCode;
+use dns::dns_packet::DnsPacket;
 use dns::dns_lookup::recursive_lookup;
 
 
