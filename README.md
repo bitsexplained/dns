@@ -2,7 +2,7 @@
 [![Rust](https://github.com/bitsexplained/dns/actions/workflows/rust.yml/badge.svg)](https://github.com/bitsexplained/dns/actions/workflows/rust.yml)
 
 
-# Simple DNS resolver in Rust
+# DNS resolver
 This repository contains a simple DNS resolver written in Rust. It listens on port 2053 (standard DNS port) and forwards queries to a recursive resolver.
 
 # Prerequisites
