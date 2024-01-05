@@ -1,5 +1,5 @@
 [package]
-name = "dns-resolver"
+name = "micro-dns"
 version = "0.1.0"
 edition = "2021"
 description = "a recursive dns resolver"
