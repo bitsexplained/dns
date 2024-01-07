@@ -1,9 +1,7 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
-
-use crate::utils::types::Result;
-use crate::buffer::buffer::BytePacketBuffer;
-
-use super::query_type::QueryType;
+use crate::types::Result;
+use crate::buffer::BytePacketBuffer;
+use crate::query_type::QueryType;
 
 //DnsRecord represents the actual dns record
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]

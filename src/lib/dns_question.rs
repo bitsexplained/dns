@@ -1,8 +1,6 @@
-use crate::utils::types::Result;
+use crate::types::Result;
 use crate::buffer::buffer::BytePacketBuffer;
-
-
-use super::query_type::QueryType;
+use crate::query_type::QueryType;
 
 
 //DnsQuestion allows adding of more records later on

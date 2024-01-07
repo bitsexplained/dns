@@ -1,5 +1,5 @@
-use crate::buffer::buffer::BytePacketBuffer;
-use crate::utils::types::Result;
+use crate::buffer::BytePacketBuffer;
+use crate::types::Result;
 
 
 // ResultCode

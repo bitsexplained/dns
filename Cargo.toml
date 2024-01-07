@@ -13,3 +13,13 @@ keywords = ["dns", "resolver", "recursive"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+
+[[bin]]
+name = "micro-dns"
+path = "src/main.rs"
+
+
+[lib]
+name = "micro_dns"
+path = "src/lib/lib.rs"

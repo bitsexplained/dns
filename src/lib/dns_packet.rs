@@ -1,8 +1,8 @@
 use std::net::Ipv4Addr;
 
 
-use crate::buffer::buffer::BytePacketBuffer;
-use crate::utils::types::Result;
+use crate::buffer::BytePacketBuffer;
+use crate::types::Result;
 
 use super::query_type::QueryType;
 use super::dns_header::DnsHeader;
