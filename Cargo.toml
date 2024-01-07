@@ -1,8 +1,25 @@
 [package]
-name = "dns"
-version = "0.1.0"
+name = "micro-dns"
+version = "0.1.11"
 edition = "2021"
+description = "a recursive dns resolver"
+homepage = "https://github.com/bitsexplained/dns"
+documentation = "https://docs.rs/micro-dns"
+repository = "https://github.com/bitsexplained/dns"
+readme = "README.md"
+license = "MIT"
+keywords = ["dns", "resolver", "recursive"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+
+[[bin]]
+name = "micro-dns"
+path = "src/main.rs"
+
+
+[lib]
+name = "micro_dns"
+path = "src/lib/lib.rs"

@@ -1,4 +1,6 @@
-use crate::utils::types::Result;
+
+use crate::types::Result;
+
 
 pub struct BytePacketBuffer{
     pub buf: [u8; 512],

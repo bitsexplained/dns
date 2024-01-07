@@ -1,14 +1,12 @@
 use std::net::{Ipv4Addr,UdpSocket};
 
 
-use crate::buffer::buffer::BytePacketBuffer;
-use crate::utils::types::Result;
-
-use super::query_type::QueryType;
-use super::dns_packet::DnsPacket;
-use super::dns_header::ResultCode;
-use super::dns_question::DnsQuestion;
-
+use crate::buffer::BytePacketBuffer;
+use crate::types::Result;
+use crate::dns_packet::DnsPacket;
+use crate::dns_header::ResultCode;
+use crate::dns_question::DnsQuestion;
+use crate::query_type::QueryType;
 
 // Add lookup method to lookup DNS records
 fn lookup(query_name: &str, query_type: QueryType, server: (Ipv4Addr, u16)) -> Result<DnsPacket> {
