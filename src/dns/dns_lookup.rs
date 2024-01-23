@@ -1,18 +1,15 @@
-use std::net::{Ipv4Addr,UdpSocket};
-
+use std::net::{Ipv4Addr, UdpSocket};
 
 use crate::buffer::buffer::BytePacketBuffer;
 use crate::utils::types::Result;
 
-use super::query_type::QueryType;
-use super::dns_packet::DnsPacket;
 use super::dns_header::ResultCode;
+use super::dns_packet::DnsPacket;
 use super::dns_question::DnsQuestion;
-
+use super::query_type::QueryType;
 
 // Add lookup method to lookup DNS records
 fn lookup(query_name: &str, query_type: QueryType, server: (Ipv4Addr, u16)) -> Result<DnsPacket> {
-
     // bind a UDP socket to arbitrary port
     let socket = UdpSocket::bind(("0.0.0.0", 42340))?;
 
@@ -40,7 +37,6 @@ fn lookup(query_name: &str, query_type: QueryType, server: (Ipv4Addr, u16)) -> R
 
     //`DnsPacket::from_buffer()` is used to parse the response
     DnsPacket::from_buffer(&mut res_buffer)
-
 }
 
 // Recursively query name servers until we get an answer or hit an error

@@ -1,7 +1,7 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use crate::utils::types::Result;
 use crate::buffer::buffer::BytePacketBuffer;
+use crate::utils::types::Result;
 
 use super::query_type::QueryType;
 
@@ -64,11 +64,7 @@ impl DnsRecord {
                     ((raw_addr >> 0) & 0xFF) as u8,
                 );
 
-                Ok(DnsRecord::A {
-                    domain,
-                    addr,
-                    ttl,
-                })
+                Ok(DnsRecord::A { domain, addr, ttl })
             }
             QueryType::NS => {
                 let mut ns = String::new();
@@ -159,7 +155,7 @@ impl DnsRecord {
                 buffer.write_u8(octets[1])?;
                 buffer.write_u8(octets[2])?;
                 buffer.write_u8(octets[3])?;
-            },
+            }
             DnsRecord::NS {
                 ref domain,
                 ref host,
@@ -177,7 +173,7 @@ impl DnsRecord {
 
                 let size = buffer.pos() - (pos + 2);
                 buffer.set_u16(pos, size as u16)?;
-            },
+            }
             DnsRecord::MX {
                 ref domain,
                 priority,
@@ -197,7 +193,7 @@ impl DnsRecord {
 
                 let size = buffer.pos() - (pos + 2);
                 buffer.set_u16(pos, size as u16)?;
-            },
+            }
             DnsRecord::CNAME {
                 ref domain,
                 ref host,
@@ -215,7 +211,7 @@ impl DnsRecord {
 
                 let size = buffer.pos() - (pos + 2);
                 buffer.set_u16(pos, size as u16)?;
-            },
+            }
             DnsRecord::AAAA {
                 ref domain,
                 ref addr,
@@ -230,7 +226,7 @@ impl DnsRecord {
                 for octet in &addr.segments() {
                     buffer.write_u16(*octet)?;
                 }
-            },
+            }
             DnsRecord::UNKNOWN { .. } => {
                 println!("skipping unknown record : {:?}", self);
             }

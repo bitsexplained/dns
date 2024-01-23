@@ -1,22 +1,20 @@
-use crate::utils::types::Result;
 use crate::buffer::buffer::BytePacketBuffer;
-
+use crate::utils::types::Result;
 
 use super::query_type::QueryType;
 
-
 //DnsQuestion allows adding of more records later on
-#[derive(PartialEq, Eq, Debug,Clone)]
-pub struct DnsQuestion{
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub struct DnsQuestion {
     pub name: String,
     pub question_type: QueryType,
 }
 
 impl DnsQuestion {
-    pub fn new(name: String, question_type: QueryType) -> DnsQuestion{
+    pub fn new(name: String, question_type: QueryType) -> DnsQuestion {
         DnsQuestion {
             name,
-            question_type
+            question_type,
         }
     }
     // read DNS question from buffer

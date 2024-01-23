@@ -1,16 +1,15 @@
 use crate::buffer::buffer::BytePacketBuffer;
 use crate::utils::types::Result;
 
-
 // ResultCode
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ResultCode {
-    NOERROR=0,
-    FORMERR=1,
-    SERVFAIL=2,
-    NXDOMAIN=3,
-    NOTIMP=4,
-    REFUSED=5,
+    NOERROR = 0,
+    FORMERR = 1,
+    SERVFAIL = 2,
+    NXDOMAIN = 3,
+    NOTIMP = 4,
+    REFUSED = 5,
 }
 
 impl ResultCode {
@@ -21,15 +20,15 @@ impl ResultCode {
             3 => ResultCode::NXDOMAIN,
             4 => ResultCode::NOTIMP,
             5 => ResultCode::REFUSED,
-            0 | _ => ResultCode::NOERROR
+            0 | _ => ResultCode::NOERROR,
         }
     }
 }
 
 //DnsHeader
 #[derive(Debug, Clone)]
-pub struct  DnsHeader{
-    pub id : u16, //16 bits
+pub struct DnsHeader {
+    pub id: u16,                    //16 bits
     pub recursion_desired: bool,    // 1 bit
     pub truncated_message: bool,    // 1 bit
     pub authoritative_answer: bool, // 1 bit
@@ -48,9 +47,8 @@ pub struct  DnsHeader{
     pub resource_entries: u16,      // 16 bits
 }
 
-
 impl DnsHeader {
-    pub fn new() -> DnsHeader{
+    pub fn new() -> DnsHeader {
         DnsHeader {
             id: 0,
 
@@ -106,18 +104,18 @@ impl DnsHeader {
         // Write recursion_desired flag
         buffer.write_u8(
             (self.recursion_desired as u8)
-            | ((self.truncated_message as u8) << 1)
-            | ((self.authoritative_answer as u8) << 2)
-            | ((self.opcode as u8) << 3)
-            | ((self.response as u8) << 7)
+                | ((self.truncated_message as u8) << 1)
+                | ((self.authoritative_answer as u8) << 2)
+                | ((self.opcode as u8) << 3)
+                | ((self.response as u8) << 7),
         )?;
         // write rescode
         buffer.write_u8(
             (self.rescode as u8)
-            | ((self.checking_disabled as u8) << 4)
-            | ((self.authed_data as u8) << 5)
-            | ((self.z as u8) << 6)
-            | ((self.recursion_available as u8) << 7)
+                | ((self.checking_disabled as u8) << 4)
+                | ((self.authed_data as u8) << 5)
+                | ((self.z as u8) << 6)
+                | ((self.recursion_available as u8) << 7),
         )?;
 
         buffer.write_u16(self.questions)?;

@@ -1,22 +1,21 @@
 use std::net::Ipv4Addr;
 
-
 use crate::buffer::buffer::BytePacketBuffer;
 use crate::utils::types::Result;
 
-use super::query_type::QueryType;
 use super::dns_header::DnsHeader;
-use super::dns_record::DnsRecord;
 use super::dns_question::DnsQuestion;
+use super::dns_record::DnsRecord;
+use super::query_type::QueryType;
 
 ///DnsPacket wraps everything together
 #[derive(Clone, Debug)]
-pub struct DnsPacket{
+pub struct DnsPacket {
     pub header: DnsHeader,
     pub questions: Vec<DnsQuestion>,
     pub answers: Vec<DnsRecord>,
     pub authorities: Vec<DnsRecord>,
-    pub resources: Vec<DnsRecord>
+    pub resources: Vec<DnsRecord>,
 }
 
 impl DnsPacket {
@@ -35,8 +34,7 @@ impl DnsPacket {
         result.header.read(buffer)?;
 
         for _ in 0..result.header.questions {
-            let mut question =
-            DnsQuestion::new("".to_string(), QueryType::UNKNOWN(0));
+            let mut question = DnsQuestion::new("".to_string(), QueryType::UNKNOWN(0));
             question.read(buffer)?;
             result.questions.push(question);
         }
@@ -73,7 +71,7 @@ impl DnsPacket {
             auth.write(buffer)?;
         }
         // write resource entries
-        for resource in &self.resources{
+        for resource in &self.resources {
             resource.write(buffer)?;
         }
         Ok(())

@@ -1,17 +1,14 @@
 use std::net::UdpSocket;
 
-pub mod utils;
 pub mod buffer;
 pub mod dns;
+pub mod utils;
 
-
-use utils::types::Result;
 use buffer::buffer::BytePacketBuffer;
 use dns::dns_header::ResultCode;
-use dns::dns_packet::DnsPacket;
 use dns::dns_lookup::recursive_lookup;
-
-
+use dns::dns_packet::DnsPacket;
+use utils::types::Result;
 
 /// Handle a single incoming packet
 fn handle_query(socket: &UdpSocket) -> Result<()> {
@@ -92,10 +89,8 @@ fn main() -> Result<()> {
     // requests is initiated.
     loop {
         match handle_query(&socket) {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => eprintln!("An error occurred: {}", e),
         }
     }
 }
-
-

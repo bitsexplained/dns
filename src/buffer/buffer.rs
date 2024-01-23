@@ -1,6 +1,6 @@
 use crate::utils::types::Result;
 
-pub struct BytePacketBuffer{
+pub struct BytePacketBuffer {
     pub buf: [u8; 512],
     pub pos: usize,
 }
@@ -11,7 +11,7 @@ impl BytePacketBuffer {
     ///This gives us a fresh new BytePacketBuffer for holding the packet contents
     /// and a field for keeping track of where we are in the buffer
     pub fn new() -> BytePacketBuffer {
-        BytePacketBuffer{
+        BytePacketBuffer {
             buf: [0; 512],
             pos: 0,
         }
@@ -23,7 +23,7 @@ impl BytePacketBuffer {
     }
 
     //step the buffer position forward a certain number of position
-    pub fn step(&mut self, steps: usize) -> Result<()>{
+    pub fn step(&mut self, steps: usize) -> Result<()> {
         self.pos += steps;
         Ok(())
     }
@@ -57,7 +57,7 @@ impl BytePacketBuffer {
         if start + len > 512 {
             return Err("End of buffer".into());
         }
-        Ok(&self.buf[start..start+len as usize])
+        Ok(&self.buf[start..start + len as usize])
     }
 
     //read two bytes stepping two bytes forward
@@ -69,9 +69,9 @@ impl BytePacketBuffer {
     //read four bytes stepping four bytes forward
     pub fn read_u32(&mut self) -> Result<u32> {
         let res = (self.read()? as u32) << 24
-        | (self.read()? as u32) << 16
-        | (self.read()? as u32) << 8
-        | (self.read()? as u32) << 0;
+            | (self.read()? as u32) << 16
+            | (self.read()? as u32) << 8
+            | (self.read()? as u32) << 0;
         Ok(res)
     }
 
@@ -88,7 +88,6 @@ impl BytePacketBuffer {
         // using this variable.
         let mut qname_pos = self.pos();
 
-
         // track wether we have jumped or not
         let mut jumped = false;
         let max_jumps = 5;
@@ -101,8 +100,8 @@ impl BytePacketBuffer {
         loop {
             //Dns packets are untrusted data so we need to have a guard against malicious packets
             // for instance one can craft a packet with a cycle in the jump instructions
-            if jumps_performed > max_jumps{
-                return  Err(format!("Limit of {} jumps exceeded", max_jumps).into());
+            if jumps_performed > max_jumps {
+                return Err(format!("Limit of {} jumps exceeded", max_jumps).into());
             }
 
             // at this point we are at the begining of a label
@@ -121,7 +120,7 @@ impl BytePacketBuffer {
                 // read another byte, calculate the the offset and perform the jump
                 // by updating our local position variable
                 let b2 = self.get(qname_pos + 1)? as u16;
-                let offset = ((len as u16)^ 0xC0) << 8 | b2;
+                let offset = ((len as u16) ^ 0xC0) << 8 | b2;
                 qname_pos = offset as usize;
 
                 //indicate that a jump was performed
@@ -171,9 +170,9 @@ impl BytePacketBuffer {
 
     //write_u16 writes two bytes
     pub fn write_u16(&mut self, byte: u16) -> Result<()> {
-        	self.write((byte >> 8) as u8)?;
-            self.write((byte & 0xff) as u8)?;
-            Ok(())
+        self.write((byte >> 8) as u8)?;
+        self.write((byte & 0xff) as u8)?;
+        Ok(())
     }
 
     //write_u32 writes four bytes
@@ -291,5 +290,3 @@ mod tests {
         assert!(result.is_ok());
     }
 }
-
-
